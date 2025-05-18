@@ -7,7 +7,7 @@ import time
 current_time = time.strftime("%Y%m%d_%H%M%S")
 sweep_config = {
     'method': 'bayes',  # Bayesian optimization for smarter sampling
-    'name': f'A3_Translit_Sweep_both_{current_time}',
+    'name': f'No_attention_{current_time}',
     'metric': {'name': 'val_loss', 'goal': 'minimize'},
 
     'parameters': {
@@ -20,7 +20,7 @@ sweep_config = {
         'cell_type': {'values': ['rnn', 'lstm', 'gru']},
         'bidirectional': {'values': [True, False]},
         'weight_decay': {'values': [0.0, 1e-5]},
-        'use_attention': {'values': [True, False]},  # set True if needed
+        'use_attention': {'values': [False]},  # set True if needed
         'n_epochs': {'values': [15, 30, 50]},
         # 'n_epochs': {'values': [1,2]},
         'max_length': {'values': [25]},
