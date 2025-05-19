@@ -20,7 +20,7 @@ The Goal:
  (iv) visualise the interactions between different components in a RNN based model.
 
 - [Assignment Link](https://wandb.ai/sivasankar1234/DA6401/reports/Assignment-3--VmlldzoxMjM4MjYzMg)  
-- [Report Link]([https://api.wandb.ai/links/ns24z274-iitm-ac-in/](https://wandb.ai/ns24z274-iitm-ac-in/DA6401_A3_translit_hi/reports/ns24z274-DA6401-Assignment-3--VmlldzoxMjgyNjYzMw?accessToken=pby3ule7oudsy3644gt6ebmb7xrnimeg6f8qs515o0yciw0jjphyp2wrjj6hqt7r))
+- [Report Link](https://wandb.ai/ns24z274-iitm-ac-in/DA6401_A3_translit_hi/reports/ns24z274-DA6401-Assignment-3--VmlldzoxMjgyNjYzMw?accessToken=pby3ule7oudsy3644gt6ebmb7xrnimeg6f8qs515o0yciw0jjphyp2wrjj6hqt7r)
 
 ## **Setup**
 
