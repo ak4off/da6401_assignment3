@@ -81,7 +81,7 @@ Automatically evaluates on:
 ## Prediction
 Predictions saved in:
 - `predictions_attention/` (attention models)
-- `predictions_vanilla_no_att/` (non-attention)
+- `predictions_vanilla/` (non-attention)
 
 ## Model Architecture
 ### Encoder
