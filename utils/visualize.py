@@ -4,9 +4,7 @@ import wandb
 
 from IPython.display import display, HTML
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import wandb
+
 import numpy as np
 import imageio
 import os
@@ -310,8 +308,6 @@ def attention_to_html(attn_matrix, input_seq, output_seq):
 #         os.remove(temp_path)
 
 #     imageio.mimsave(out_path, images, duration=0.8)
-import matplotlib.pyplot as plt
-import seaborn as sns
 from matplotlib import font_manager
 
 def log_attention_to_wandb(attn_matrix, input_seq, output_seq, idx=0, table=None):
@@ -368,46 +364,7 @@ def log_attention_to_wandb1(attn_matrix, input_seq, output_seq, idx=0, table=Non
 
 
 
-# def get_clr(value):
-#     """Returns a hex color based on intensity value (0 to 1 scaled to 0 to 20)"""
-#     colors = ['#FFFFFF'] * 3 + \
-#              ['#f9e8e8'] * 2 + ['#f9d4d4'] + ['#f9bdbd'] + ['#f8a8a8'] + \
-#              ['#f68f8f'] * 2 + ['#f47676'] + ['#f45f5f'] * 2 + ['#f34343'] * 2 + \
-#              ['#f33b3b'] * 3 + ['#f42e2e'] * 2
-#     idx = min(int(value * 20), len(colors) - 1)
-#     return colors[idx]
 
-# def cstr(word, color='black'):
-#     if word == ' ':
-#         return f"<text style='color:#000;padding-left:10px;background-color:{color}'> </text>"
-#     else:
-#         return f"<text style='color:#000;background-color:{color}'>{word} </text>"
-
-# def print_color(tuples):
-#     """Prints tokens with color based on attention weight"""
-#     html = ''.join([cstr(token, color) for token, color in tuples])
-#     display(HTML(html))
-
-# def visualize_connectivity(attn_matrix, input_seq, output_seq, delay=0.5):
-#     """
-#     Shows attention from each decoder output step to input sequence with color mapping.
-#     attn_matrix: (output_len, input_len)
-#     input_seq: list of input characters
-#     output_seq: list of predicted output characters
-#     """
-#     import time
-#     from IPython.display import clear_output
-
-#     for i, output_char in enumerate(output_seq):
-#         weights = attn_matrix[i]
-#         token_attention = [(char, get_clr(weights[j])) for j, char in enumerate(input_seq)]
-#         decoder_step = [(output_char, "#aaffaa")] + [(" ", "#FFFFFF")] * (len(input_seq)-1)
-
-#         print_color(token_attention)
-#         print_color(decoder_step)
-#         time.sleep(delay)
-#         if i < len(output_seq) - 1:
-#             clear_output(wait=True)
 
 
 def plot_attention_heatmap_errr(attention, input_tokens, output_tokens, idx=0, save_path=None):
@@ -438,7 +395,7 @@ def plot_attention_heatmap(attention, input_tokens, output_tokens, idx=0, save_p
     """
     # Check if attention has more than 2 dimensions (e.g., batch size or multi-head attention)
     if len(attention.shape) > 2:
-        # For simplicity, let's visualize the first element in the batch
+        #visualize the first element in the batch
         attention = attention[0]  # Select the first batch (adjust as needed for your use case)
 
     plt.figure(figsize=(6, 5))
@@ -454,9 +411,7 @@ def plot_attention_heatmap(attention, input_tokens, output_tokens, idx=0, save_p
 
 # for wandb logging
 def plot_grid_heatmaps(attention_list, input_list, output_list):
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import wandb
+
     from matplotlib import font_manager
 
     # Load Devanagari font
@@ -509,21 +464,9 @@ def plot_grid_heatmaps(attention_list, input_list, output_list):
 #     plt.tight_layout()
 #     plt.savefig("attention_grid.png")
 
-def plot_grid_heatmaps_err(attention_list, input_list, output_list):
-    fig, axes = plt.subplots(3, 3, figsize=(18, 12))
-    for i, ax in enumerate(axes.flat):
-        if i >= len(attention_list):
-            break
-        sns.heatmap(attention_list[i].cpu().detach().numpy(), ax=ax, xticklabels=input_list[i], yticklabels=output_list[i], cmap="viridis")
-        ax.set_title(f"Sample {i}")
-        ax.set_xlabel("Input")
-        ax.set_ylabel("Output")
-    plt.tight_layout()
-    plt.savefig("attention_grid.png")
 
-import matplotlib.pyplot as plt
+
 import networkx as nx
-import wandb
 
 def draw_connectivity(attention, input_seq, output_seq, idx=None, save_path=None, log_to_wandb=True):
     """
@@ -608,38 +551,8 @@ except:
 
 #     imageio.mimsave(out_path, images, duration=0.8)
 
-def draw_connectivity1old(attention, input_seq, output_seq):
-    """
-    Draw static connectivity figure showing highest attention connections.
-    """
-    import networkx as nx
-    import matplotlib.pyplot as plt
 
-    G = nx.DiGraph()
 
-    for i, out_char in enumerate(output_seq):
-        for j, in_char in enumerate(input_seq):
-            weight = attention[i][j].item()
-            if weight > 0.1:  # threshold
-                G.add_edge(f"{in_char}_{j}", f"{out_char}_{i}", weight=weight)
-
-    pos = nx.spring_layout(G)
-    weights = [G[u][v]['weight'] for u, v in G.edges()]
-    nx.draw(G, pos, with_labels=True, edge_color=weights, edge_cmap=plt.cm.Greens, node_size=1500, font_size=10)
-    plt.title("Character Connectivity via Attention")
-    plt.show()
-
-# geepsuggeste
-def plot_attention(attn_weights, input_seq, output_seq, fname):
-
-    fig, ax = plt.subplots(figsize=(10, 8))
-    # sns.heatmap(attn_weights, xticklabels=input_seq, yticklabels=output_seq, ax=ax)
-    sns.heatmap(attn_weights.detach().cpu().numpy(), xticklabels=input_seq, yticklabels=output_seq, ax=ax)
-
-    plt.xlabel('Input')
-    plt.ylabel('Output')
-    plt.title('Attention Heatmap')
-    plt.savefig(fname)
 
 def log_attention_table(attn_list, input_list, output_list):
     devanagari_font = font_manager.FontProperties(fname="/usr/share/fonts/truetype/lohit-devanagari/Lohit-Devanagari.ttf")

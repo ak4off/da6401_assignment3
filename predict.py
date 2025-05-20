@@ -78,7 +78,7 @@ def predict(model, dataloader, device, input_vocab, output_vocab):
                     wandb.log({
                         f"attention_html_{batch_idx}_{i}": wandb.Html(open(html_file).read())
                     })
-                    # # Generate interactive HTML visualization
+                    # # Generate mapping HTML visualization
                     # html_filename = f"attention_{batch_idx}_{i}.html"
                     # create_interactive_connectivity111(
                     #     attn_matrix=attn,
@@ -103,59 +103,7 @@ def predict(model, dataloader, device, input_vocab, output_vocab):
     with open(f'predictions_attention/predictions_{wandb.run.id}.txt', 'w', encoding='utf-8') as f:
         for inp, pred, truth in zip(original_inputs, predictions, ground_truths):
             f.write(f"{inp}\t{pred}\t{truth}\n")
-# def predict(model, dataloader, device, input_vocab, output_vocab):
 
-#     model.eval()
-#     predictions = []
-#     original_inputs = []
-
-#     table = wandb.Table(columns=["Input", "Prediction", "Attention Heatmap"])
-
-#     with torch.no_grad():
-#         for src, tgt_out, src_lengths, tgt_lengths in tqdm(dataloader, desc="Predicting"):
-#             src = src.to(device)
-#             output = model(src, None, src_lengths, teacher_forcing_ratio=0.0)
-#             tgt_out = tgt_out.to(device)
-#             output_logits = output[0]
-#             output_tokens = output_logits.argmax(dim=-1)
-
-#             decoded_output = decode_sequence(output_tokens, output_vocab)
-#             decoded_input = decode_sequence(src, input_vocab)
-
-#             predictions.extend(decoded_output)
-#             original_inputs.extend(decoded_input)
-#             pred_v_actual(input_vocab, output_vocab, src.cpu(), tgt_out.cpu(), output_tokens.cpu())
-
-#             if hasattr(model, "decoder") and hasattr(model.decoder, "attention"):
-#                 attention_tensor = output[1]  # logits, attn
-#                 for i in range(min(3, src.size(0))):  # visualize first few
-#                     attn = attention_tensor[i].cpu()
-#                     inp_str = decoded_input[i]
-#                     pred_str = decoded_output[i]
-
-#                     # Removed GIF generation and wandb.Video logging
-#                     # gif_path = f"attn_viz_{i}.gif"
-#                     # save_attention_gif(attn, list(inp_str), list(pred_str), save_path=gif_path)
-#                     # wandb.log({f"attention_gif_{i}": wandb.Video(gif_path, format="gif")})
-
-#                     # draw_connectivity(attn, list(inp_str), list(pred_str), idx=i)
-
-#                     # Still logs attention to wandb table (likely via static image)
-#                     log_attention_to_wandb(attn, list(inp_str), list(pred_str), idx=i, table=table)
-
-#     wandb.log({"Attention Table ": table})
-
-
-
-    # Save predictions
-    # with open('predictions_with_inputs.txt', 'w', encoding='utf-8') as f:
-    #     for inp, pred in zip(original_inputs, predictions):
-    #         f.write(f"{inp}\t{pred}\n")
-
-    # os.makedirs('predictions_vanilla', exist_ok=True)
-    # with open('predictions_vanilla/test_preds.txt', 'w', encoding='utf8') as f:
-    #     for pred in predictions:
-    #         f.write(f"{pred}\n")
 def predict_no_attention(model, dataloader, device, input_vocab, output_vocab):
     model.eval()
     predictions = []
@@ -182,109 +130,4 @@ def predict_no_attention(model, dataloader, device, input_vocab, output_vocab):
             # Log pred vs actual for this batch
             pred_v_actual(input_vocab, output_vocab, src.cpu(), tgt_out.cpu(), output_tokens.cpu())
 
-
-    # wandb.log({"Prediction Table": table})
-
-    # Save predictions
-    # with open('predictions_with_inputs_no_att.txt', 'w', encoding='utf-8') as f:
-    #     for inp, pred in zip(original_inputs, predictions):
-    #         f.write(f"{inp}\t{pred}\n")
-
-    # os.makedirs('predictions_vanilla_no_att', exist_ok=True)
-    # with open('predictions_vanilla/test_preds.txt', 'w', encoding='utf8') as f:
-    #     for pred in predictions:
-    #         f.write(f"{pred}\n")
-# working just not GIF
-# import torch
-# import os
-# from utils.decode import decode_sequence
-# from tqdm import tqdm
-# from utils.visualize import visualize_connectivity  # <-- Add this import
-# from utils.visualize import draw_connectivity
-
-# def predict(model, dataloader, device, input_vocab, output_vocab):
-#     model.eval()
-#     predictions = []
-#     original_inputs = []
-
-#     with torch.no_grad():
-#         for src, _, src_lengths, _ in tqdm(dataloader, desc="Predicting"):
-#             src = src.to(device)
-#             output = model(src, None, src_lengths, teacher_forcing_ratio=0.0)
-            
-#             output_logits = output[0]
-#             output_tokens = output_logits.argmax(dim=-1)
-
-#             decoded_output = decode_sequence(output_tokens, output_vocab)
-#             decoded_input = decode_sequence(src, input_vocab)
-
-#             predictions.extend(decoded_output)
-#             original_inputs.extend(decoded_input)
-
-#             # Connectivity Visualization for first few samples
-#             # if hasattr(model, "decoder") and hasattr(model.decoder, "attention"):
-#             #     attention_tensor = output[1]  # (logits, attention_weights)
-#             #     for i in range(min(3, src.size(0))):
-#             #         attn = attention_tensor[i].cpu().detach().numpy()
-#             #         inp_str = decoded_input[i]
-#             #         pred_str = decoded_output[i]
-#             #         print(f"\nInput: {inp_str}")
-#             #         print(f"Prediction: {pred_str}")
-#             #         visualize_connectivity(attn, list(inp_str), list(pred_str))
-#             if hasattr(model, "decoder") and hasattr(model.decoder, "attention"):
-#                 attention_tensor = output[1]  # (logits, attention_weights)
-#                 for i in range(min(3, src.size(0))):  # visualize a few samples
-#                     attn = attention_tensor[i].cpu().detach().numpy()
-#                     inp_str = decoded_input[i]
-#                     pred_str = decoded_output[i]
-
-#                     print(f"\n[Connectivity] Input: {inp_str}")
-#                     print(f"[Connectivity] Prediction: {pred_str}")
-#                     draw_connectivity(attn, list(inp_str), list(pred_str), idx=i)
-
-#     # Save predictions
-#     with open('predictions_with_inputs.txt', 'w', encoding='utf-8') as f:
-#         for inp, pred in zip(original_inputs, predictions):
-#             f.write(f"{inp}\t{pred}\n")
-
-#     os.makedirs('predictions_vanilla', exist_ok=True)
-#     with open('predictions_vanilla/test_preds.txt', 'w', encoding='utf8') as f:
-#         for pred in predictions:
-#             f.write(f"{pred}\n")
-
-# import torch
-# import os
-# from utils.decode import decode_sequence
-# from tqdm import tqdm
-# def predict(model, dataloader, device, input_vocab, output_vocab):
-#     model.eval()
-#     predictions = []
-#     original_inputs = []
-
-#     with torch.no_grad():
-#         # for src, _, src_lengths, _ in dataloader:
-#         for src, _, src_lengths, _ in tqdm(dataloader, desc="Predicting"):
-
-#             src = src.to(device)
-
-#             output = model(src, None, src_lengths, teacher_forcing_ratio=0.0)
-#             # Assuming output is a tuple where the first element is the actual output
-#             output_logits = output[0]  # Access the first element of the tuple
-#             output_tokens = output_logits.argmax(dim=-1)  # Apply argmax on the logits
-#             # output_tokens = output.argmax(dim=-1) AttributeError: 'tuple' object has no attribute 'argmax'
-
-#             decoded_output = decode_sequence(output_tokens, output_vocab)
-#             decoded_input = decode_sequence(src, input_vocab)
-
-#             predictions.extend(decoded_output)
-#             original_inputs.extend(decoded_input)
-
-#     # Write both inputs and predictions to a file
-#     with open('predictions_with_inputs.txt', 'w', encoding='utf-8') as f:
-#         for inp, pred in zip(original_inputs, predictions):
-#             f.write(f"{inp}\t{pred}\n")  # Tab-separated format
-#     os.makedirs('predictions_vanilla', exist_ok=True)
-#     with open('predictions_vanilla/test_preds.txt', 'w', encoding='utf8') as f:
-#         for pred in predictions:
-#             f.write(f"{pred}\n")
 

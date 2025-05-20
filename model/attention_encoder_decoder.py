@@ -201,24 +201,24 @@ class Seq2SeqWithAttention(Seq2Seq):
 
         encoder_outputs, hidden = self.encoder(src, src_lengths)
         #print("\n[DEBUG] Encoder returned hidden state:")
-        #print(f"  ➤ Type: {type(hidden)}")
+        #print(f"   Type: {type(hidden)}")
         # if isinstance(hidden, tuple):
-            ##print(f"  ➤ Tuple of shapes: {[h.shape for h in hidden]}")
+            ##print(f"   Tuple of shapes: {[h.shape for h in hidden]}")
         # else:
-            ##print(f"  ➤ Shape: {hidden.shape}")
+            ##print(f"   Shape: {hidden.shape}")
         hidden = self._combine_bidirectional_hidden(hidden) if self.encoder.bidirectional else hidden
 
         input = tgt[:, 0] if tgt is not None else torch.tensor([self.sos_idx] * batch_size, device=self.device)
         #print("[DEBUG] Passing hidden to decoder...")
         for t in range(1, tgt_len):
-            #print(f"\n⏳ Time step {t}")
-            #print(f"  ➤ Input shape: {input.shape}")
-            #print(f"  ➤ Hidden type: {type(hidden)}")
+            #print(f"\n Time step {t}")
+            #print(f"   Input shape: {input.shape}")
+            #print(f"   Hidden type: {type(hidden)}")
             if isinstance(hidden, tuple):  # LSTM
                 output, hidden = self.decoder(input, hidden, encoder_outputs)
-                #print(f"  ➤ Hidden shapes: {[h.shape for h in hidden]}")
+                #print(f"   Hidden shapes: {[h.shape for h in hidden]}")
             else:  # GRU/RNN
-                #print(f"  ➤ Hidden shape: {hidden.shape}")
+                #print(f"   Hidden shape: {hidden.shape}")
 
                 output, hidden = self.decoder(input, hidden, encoder_outputs)
 
@@ -238,4 +238,3 @@ class Seq2SeqWithAttention(Seq2Seq):
             attention_tensor = None
         return outputs[:, 1:, :], attention_tensor
 
-        # return outputs[:, 1:, :]  # skip <sos>
