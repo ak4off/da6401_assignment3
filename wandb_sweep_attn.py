@@ -7,7 +7,7 @@ import time
 current_time = time.strftime("%Y%m%d_%H%M%S")
 sweep_config = {
     'method': 'bayes',  # Bayesian optimization for smarter sampling
-    'name': f'Conne111Attention_{current_time}',
+    'name': f'THE_FINAL_Conne2AttentionSWEEP_{current_time}',
     'metric': {'name': 'val_loss', 'goal': 'minimize'},
 
     'parameters': {

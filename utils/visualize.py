@@ -454,21 +454,38 @@ def plot_attention_heatmap(attention, input_tokens, output_tokens, idx=0, save_p
 
 # for wandb logging
 def plot_grid_heatmaps(attention_list, input_list, output_list):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import wandb
+    from matplotlib import font_manager
+
+    # Load Devanagari font
+    devanagari_font = font_manager.FontProperties(fname="/usr/share/fonts/truetype/lohit-devanagari/Lohit-Devanagari.ttf")
+
     fig, axes = plt.subplots(3, 3, figsize=(18, 12))
     for i, ax in enumerate(axes.flat):
         if i >= len(attention_list):
             break
-        # sns.heatmap(attention_list[i], ax=ax, xticklabels=input_list[i], yticklabels=output_list[i], cmap="viridis")
+
         if attention_list[i].shape != (len(output_list[i]), len(input_list[i])):
             print(f"[Warning] Shape mismatch in heatmap: attention {attention_list[i].shape}, y {len(output_list[i])}, x {len(input_list[i])}")
             continue
 
-        sns.heatmap(attention_list[i].cpu().detach().numpy(), ax=ax,
-            xticklabels=input_list[i], yticklabels=output_list[i], cmap="viridis")
+        sns.heatmap(attention_list[i].cpu().detach().numpy(),
+                    ax=ax,
+                    xticklabels=input_list[i],
+                    yticklabels=output_list[i],
+                    cmap="viridis")
 
-        ax.set_title(f"Sample {i}")
-    
-    # Log the entire grid to W&B
+        # Apply font to tick labels
+        ax.set_xticklabels(input_list[i], fontproperties=devanagari_font, rotation=90)
+        ax.set_yticklabels(output_list[i], fontproperties=devanagari_font, rotation=0)
+
+        ax.set_title(f"Sample {i}", fontproperties=devanagari_font, fontsize=12)
+        ax.set_xlabel("Input", fontproperties=devanagari_font, fontsize=10)
+        ax.set_ylabel("Output", fontproperties=devanagari_font, fontsize=10)
+
+    plt.tight_layout()
     wandb.log({"attention_grid": wandb.Image(fig, caption="Attention Heatmaps")})
     plt.close(fig)
 
@@ -623,3 +640,27 @@ def plot_attention(attn_weights, input_seq, output_seq, fname):
     plt.ylabel('Output')
     plt.title('Attention Heatmap')
     plt.savefig(fname)
+
+def log_attention_table(attn_list, input_list, output_list):
+    devanagari_font = font_manager.FontProperties(fname="/usr/share/fonts/truetype/lohit-devanagari/Lohit-Devanagari.ttf")
+
+    heat_table = wandb.Table(columns=["Input", "Output", "Attention Heatmap"])
+    for i in range(min(len(attn_list), 10)):
+        fig, ax = plt.subplots(figsize=(6, 5))
+        sns.heatmap(attn_list[i], xticklabels=input_list[i], yticklabels=output_list[i], cmap="viridis", ax=ax)
+        ax.set_title(f"Sample {i}")
+        plt.tight_layout()
+        heat_table.add_data(''.join(input_list[i]), ''.join(output_list[i]), wandb.Image(fig))
+
+        # Apply Devanagari font to ticks
+        ax.set_xticklabels(input_list[i], fontproperties=devanagari_font, rotation=90)
+        ax.set_yticklabels(output_list[i], fontproperties=devanagari_font, rotation=0)
+
+        ax.set_title(f"Sample {i}", fontproperties=devanagari_font)
+        ax.set_xlabel("Input (Latin)", fontproperties=devanagari_font)
+        ax.set_ylabel("Output (Devanagari)", fontproperties=devanagari_font)
+        plt.tight_layout()
+
+        heat_table.add_data(''.join(input_list[i]), ''.join(output_list[i]), wandb.Image(fig))
+        plt.close(fig)
+    wandb.log({"Attention Heatmaps Table": heat_table})

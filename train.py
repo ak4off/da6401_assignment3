@@ -25,6 +25,8 @@ from evaluate import evaluate
 import pickle
 from torch.cuda.amp import autocast, GradScaler
 from sklearn.decomposition import PCA
+from utils.visualize import plot_grid_heatmaps, log_attention_table
+import seaborn as sns
 
 warnings.filterwarnings('ignore', category=UserWarning)
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -69,6 +71,7 @@ def evaluate_and_visualize(model, dev_loader, criterion, device, input_vocab, ou
     attention_list = []
     input_list = []
     output_list = []
+    MAX_ATTN_SAMPLES = 10
 
     with torch.no_grad():
         for batch_idx, (src, tgt, src_lengths, tgt_lengths) in enumerate(dev_loader):
@@ -86,31 +89,44 @@ def evaluate_and_visualize(model, dev_loader, criterion, device, input_vocab, ou
             correct_tokens += ((pred_tokens == tgt_tokens) & mask).sum().item()
             total_tokens += mask.sum().item()
 
-            if batch_idx < 3:
-                attention_list.append(attention_weights[0].cpu().numpy())
-                input_list.append([input_vocab.itos[i] for i in src[0]])
-                output_list.append([output_vocab.itos[i] for i in tgt[0]])
 
+           # Collect attention samples up to MAX_ATTN_SAMPLES
+            if len(attention_list) < MAX_ATTN_SAMPLES:
+                attention_list.append(attention_weights[0].cpu())
+                # input_list.append([input_vocab.itos[i] for i in src[0]])
+                # output_list.append([output_vocab.itos[i] for i in tgt[0]])
+                src_len = src_lengths[0]
+                tgt_len = attention_weights.shape[0]  # this should be the actual output length used
+
+                input_list.append([input_vocab.itos[i] for i in src[0][:src_len]])
+                output_list.append([output_vocab.itos[i] for i in tgt[0][1:1 + tgt_len]])
+                
     avg_loss = total_loss / len(dev_loader)
     val_acc = correct_tokens / total_tokens if total_tokens > 0 else 0.0
 
-    if epoch % 5 == 0 and attention_list:
-        plt.figure(figsize=(10, 8))
-        sns.heatmap(attention_list[0],
-                    xticklabels=input_list[0],
-                    yticklabels=output_list[0],
-                    cmap="viridis")
-        plt.title(f"Attention Heatmap (Epoch {epoch})")
-        plt.xlabel("Input (Latin)")
-        plt.ylabel("Output (Devanagari)")
+    if wandb.run:
         wandb.log({
-            "attention_heatmap": wandb.Image(plt),
             "val_loss": avg_loss,
             "val_accuracy": val_acc
         })
-        plt.close()
+
+
+        # Grid of 9 samples
+        if len(attention_list) >= 9:
+            plot_grid_heatmaps(attention_list[:9], input_list[:9], output_list[:9])
+
+        # Table with 10 samples
+        log_attention_table(attention_list[:10], input_list[:10], output_list[:10])
+
+        # Log a single large attention heatmap
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.heatmap(attention_list[0], xticklabels=input_list[0], yticklabels=output_list[0], cmap="viridis", ax=ax)
+        ax.set_title(f"Attention Heatmap (Epoch {epoch})")
+        wandb.log({"attention_heatmap": wandb.Image(fig)})
+        plt.close(fig)
 
     return avg_loss, val_acc
+
 
 
 def parse_args():
@@ -273,7 +289,7 @@ def main():
         print(f"Epoch {epoch+1}/{args.n_epochs} - Loss: {avg_loss:.4f} - Accuracy: {train_acc:.4f}")
 
         if wandb.run:
-            wandb.log({"train_loss": avg_loss, "train_accuracy": train_acc})
+            wandb.log({"epoch": epoch + 1,"train_loss": avg_loss, "train_accuracy": train_acc})
 
         # val_loss, val_acc = evaluate_and_visualize(model, dev_loader, criterion, device, input_vocab, output_vocab, epoch,args)
         # print(f"Validation Loss: {val_loss:.4f}, Accuracy: {val_acc:.4f}")

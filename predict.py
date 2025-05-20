@@ -26,6 +26,7 @@ def predict(model, dataloader, device, input_vocab, output_vocab):
     model.eval()
     predictions = []
     original_inputs = []
+    ground_truths = []
 
     heatmap_table = wandb.Table(columns=["Input", "Prediction", "Attention Heatmap"])
     qn7_table = wandb.Table(columns=["Input", "Prediction", "INTERACTIVE Attention"])
@@ -43,9 +44,13 @@ def predict(model, dataloader, device, input_vocab, output_vocab):
 
             decoded_output = decode_sequence(output_tokens, output_vocab)
             decoded_input = decode_sequence(src, input_vocab)
+            decoded_gt = decode_sequence(tgt_out[:, 1:], output_vocab)     # skip <sos>
 
             predictions.extend(decoded_output)
             original_inputs.extend(decoded_input)
+            ground_truths.extend(decoded_gt)
+            table_pred1 = wandb.Table(columns=["Input", "Ground Truth", "Prediction"])
+            wandb.log({"Prediction vs Ground Truth": table_pred1})
 
             # Compare predictions to ground truth (optional visual/metric logging)
             pred_v_actual(input_vocab, output_vocab, src.cpu(), tgt_out.cpu(), output_tokens.cpu())
@@ -94,7 +99,10 @@ def predict(model, dataloader, device, input_vocab, output_vocab):
 
     # Final wandb table log
     wandb.log({"Attention Table": heatmap_table})
-
+    os.makedirs('predictions_attention', exist_ok=True)
+    with open(f'predictions_attention/predictions_{wandb.run.id}.txt', 'w', encoding='utf-8') as f:
+        for inp, pred, truth in zip(original_inputs, predictions, ground_truths):
+            f.write(f"{inp}\t{pred}\t{truth}\n")
 # def predict(model, dataloader, device, input_vocab, output_vocab):
 
 #     model.eval()
